@@ -1,0 +1,11 @@
+{{ range $index, $values := . }}
+	<div class='color'>
+		{{ range $values }}
+			{{ if . }}
+				<span class="slice color-{{ $index }}" style="height: {{ . }}%;"></span>
+			{{ else }}
+				<span class="slice" style="height: 1px; "></span>
+			{{ end }}
+		{{ end }}	
+	</div>		
+{{ end }}

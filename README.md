@@ -1,0 +1,1 @@
+Displays the 16-bin histogram for an image
