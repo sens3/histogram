@@ -2,13 +2,13 @@ package histogram
 
 import (
 	// "fmt"
+	"html/template"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"log"
 	"net/http"
-	"html/template"	
-	_ "image/gif"
-	_ "image/png"
-	_ "image/jpeg"
 )
 
 var histogramTemplate, templateErr = template.ParseGlob("templates/**")
@@ -27,7 +27,7 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func makeHistogram(w http.ResponseWriter, r *http.Request) {
-	
+
 	if r.Method == "POST" {
 		processImage(w, r)
 	}
@@ -60,27 +60,27 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 	for i := range histogram {
 		histogram[i] = make([]float64, widthPixels)
 	}
-	
+
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r, g, b, _ := m.At(x, y).RGBA()
 			// values should be between 0 and 1
-			relR := float64(r)/65535.0
-			relG := float64(g)/65535.0
-			relB := float64(b)/65535.0
+			relR := float64(r) / 65535.0
+			relG := float64(g) / 65535.0
+			relB := float64(b) / 65535.0
 			histogram[0][x] += relR
 			histogram[1][x] += relG
 			histogram[2][x] += relB
 		}
 	}
-	
+
 	// create median for each x value
 	for i, values := range histogram {
 		for j := range values {
 			histogram[i][j] = roundedPercentage(histogram[i][j], float64(heightPixels))
 		}
 	}
-	
+
 	if err := histogramTemplate.Execute(w, histogram); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -90,4 +90,3 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 func roundedPercentage(value, count float64) float64 {
 	return float64(int(((value / count) * 100) + 0.5))
 }
-
