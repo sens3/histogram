@@ -1,1 +1,1 @@
-Displays the 16-bin histogram for an image
+Displays a RGB histogram for an image.

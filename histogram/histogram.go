@@ -18,15 +18,18 @@ func init() {
 		log.Fatal(templateErr)
 		return
 	}
+	http.HandleFunc("/", serveIndex)
 	http.HandleFunc("/histogram", makeHistogram)
+}
+
+func serveIndex(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "public/html/index.html")
 }
 
 func makeHistogram(w http.ResponseWriter, r *http.Request) {
 	
 	if r.Method == "POST" {
 		processImage(w, r)
-	} else {
-		http.Error(w, "Only POST requests are allowed for /histogram", http.StatusInternalServerError)
 	}
 }
 
