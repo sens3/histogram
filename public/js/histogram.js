@@ -27,12 +27,13 @@ function uploadFile(file) {
   }
   
   xhr.onload = function () {
+    progress.style.display = 'none';
     if (xhr.status === 200) {
       progress.value = progress.innerHTML = 100;
-      progress.style.display = 'none';
+      showFile(file);
       document.getElementById('histogram').innerHTML = xhr.response;
     } else {
-      alert("Error uploading image");
+      alert(xhr.response);
     }
   };
   
@@ -47,16 +48,17 @@ function uploadFile(file) {
 }
 
 function handleFile(file) {
+  uploadFile(file);
+}
 
-	var reader = new FileReader();
+function showFile(file) {
+  var reader = new FileReader();
 
 	// init the reader event handlers
 	reader.onload = handleReaderLoad;
 
 	// begin the read operation
 	reader.readAsDataURL(file);
-	
-  uploadFile(file);
 }
 
 function drop(evt) {

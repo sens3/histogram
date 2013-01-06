@@ -45,7 +45,9 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 	// Decode the image.
 	m, _, err := image.Decode(file)
 	if err != nil {
-		log.Fatal("Error decoding image: ", err)
+		errMsg := "Error decoding image: \n" + err.Error()
+		http.Error(w, errMsg, http.StatusInternalServerError)
+		return
 	}
 
 	bounds := m.Bounds()
