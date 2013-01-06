@@ -38,7 +38,8 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 	file, _, err := r.FormFile("image_file")
 
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	defer file.Close()
 
@@ -82,6 +83,7 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 	
 	if err := histogramTemplate.Execute(w, histogram); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
