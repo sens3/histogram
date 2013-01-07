@@ -9,6 +9,9 @@ handlers:
   
 - url: /js
   static_dir: public/js  
+
+- url: /images
+  static_dir: public/images  
   
 - url: /.*
   script: _go_app
