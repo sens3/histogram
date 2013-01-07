@@ -105,5 +105,6 @@ Histogram.initEventHandlers = function() {
 
 Histogram.init = function() {
   this.initEventHandlers();
-  this.showExample();
+  // can't read from FS on AppEngine..
+  // this.showExample();
 };
