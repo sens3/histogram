@@ -4,6 +4,8 @@ import (
 	// "fmt"
 	"html/template"
 	"image"
+	"os"
+	"io"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -11,38 +13,49 @@ import (
 	"net/http"
 )
 
-var histogramTemplate, templateErr = template.ParseGlob("templates/**")
+var templates, templateErr = template.ParseGlob("templates/**")
 
 func init() {
 	if templateErr != nil {
 		log.Fatal(templateErr)
 		return
 	}
-	http.HandleFunc("/", serveIndex)
-	http.HandleFunc("/histogram", makeHistogram)
+	setupHandlers();
 }
 
-func serveIndex(w http.ResponseWriter, r *http.Request) {
+func setupHandlers() {
+	http.HandleFunc("/", serveIndex)
+	http.HandleFunc("/histogram", histogram)
+}
+
+func serveIndex(w http.ResponseWriter, r *http.Request) {	
 	http.ServeFile(w, r, "public/html/index.html")
 }
 
-func makeHistogram(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == "POST" {
-		processImage(w, r)
+func histogram(w http.ResponseWriter, r *http.Request) {
+	
+	if r.Method != "POST" {
+		http.Error(w, "Only POST requests allowed", http.StatusInternalServerError)
+		return
 	}
-}
-
-func processImage(w http.ResponseWriter, r *http.Request) {
-	// Open the file.
-	file, _, err := r.FormFile("image_file")
-
-	if err != nil {
+	
+	var file io.ReadCloser	
+	var err error
+	
+	// we will either receive example_image_file or image_data
+	if r.FormValue("example_image_file") != "" {
+		file, err = os.Open("public/images/" + r.FormValue("example_image_file"))
+	} else {
+		file, _, err = r.FormFile("image_data")
+	}
+		
+	if err != nil { 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	
 	defer file.Close()
-
+	
 	// Decode the image.
 	m, _, err := image.Decode(file)
 	if err != nil {
@@ -50,13 +63,22 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusInternalServerError)
 		return
 	}
+	
+	histogram := generateHistogramForImage(m)
+	
+	if err := templates.Execute(w, histogram); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func generateHistogramForImage(m image.Image) [][]float64 {
 
 	bounds := m.Bounds()
-
 	widthPixels := int(bounds.Max.X - bounds.Min.X)
 	heightPixels := int(bounds.Max.Y - bounds.Min.Y)
-	// init histogram
 	histogram := make([][]float64, 3)
+	
 	for i := range histogram {
 		histogram[i] = make([]float64, widthPixels)
 	}
@@ -81,10 +103,7 @@ func processImage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := histogramTemplate.Execute(w, histogram); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	return histogram
 }
 
 func roundedPercentage(value, count float64) float64 {

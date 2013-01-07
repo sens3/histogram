@@ -4,19 +4,28 @@ function noopHandler(evt) {
   evt.preventDefault();
 }
 
-function handleReaderLoad(evt) {
-  var img = document.getElementById("preview");
-  img.src = evt.target.result;
-  setTimeout(function(){
-    var histogram = document.getElementById("histogram");
+function displayImage(src) {
+  var img = document.getElementById("preview"),
+      histogram = document.getElementById("histogram");
+  img.src = src;
+  setTimeout(function(){ // give the DOM a little time to render
     histogram.style.width = img.width;
-    
-  }, 5);
+    histogram.style.display = 'block';
+  }, 300);
 }
 
-function uploadFile(file) {
-  var formData = new FormData();
-	formData.append('image_file', file);
+function handleReaderLoad(evt) {
+  displayImage(evt.target.result);
+}
+
+function handleProgress(event) {
+  if (event.lengthComputable) {
+    var complete = (event.loaded / event.total * 100 | 0);
+    progress.value = progress.innerHTML = complete;
+  }
+}
+
+function getHistogramForForm(formData) {
 	
 	// now post a new XHR request
   var xhr = new XMLHttpRequest();
@@ -24,31 +33,29 @@ function uploadFile(file) {
   
   xhr.onloadstart = function () {
     progress.style.display = 'block';
+    document.getElementById('histogram').style.display = 'none';
   }
   
   xhr.onload = function () {
     progress.style.display = 'none';
     if (xhr.status === 200) {
       progress.value = progress.innerHTML = 100;
-      showFile(file);
       document.getElementById('histogram').innerHTML = xhr.response;
     } else {
       alert(xhr.response);
     }
   };
   
-  xhr.upload.onprogress = function (event) {
-    if (event.lengthComputable) {
-      var complete = (event.loaded / event.total * 100 | 0);
-      progress.value = progress.innerHTML = complete;
-    }
-  };
+  xhr.upload.onprogress = handleProgress;
 
   xhr.send(formData)
 }
 
 function handleFile(file) {
-  uploadFile(file);
+  showFile(file)
+  var formData = new FormData();
+	formData.append('image_data', file);
+  getHistogramForForm(formData);
 }
 
 function showFile(file) {
@@ -74,14 +81,29 @@ function drop(evt) {
 
 Histogram = {}
 
-Histogram.init = function() {
+Histogram.exampleFileNames = ["chelsea-market.jpg", "nyc_1920.jpg", "pacman-ghost.jpg"];
 
-	var dropbox = document.getElementById("dropbox")
+Histogram.showExample = function() {
+	var fileName = this.exampleFileNames[Math.floor(Math.random() * this.exampleFileNames.length)],
+      formData = new FormData();
+	
+	displayImage("/images/" + fileName);
+  
+	formData.append('example_image_file', fileName);
+  getHistogramForForm(formData);
+};
+
+Histogram.initEventHandlers = function() {
+  var dropbox = document.getElementById("dropbox")
 
 	// init event handlers
 	dropbox.addEventListener("dragenter", noopHandler, false);
 	dropbox.addEventListener("dragexit", noopHandler, false);
 	dropbox.addEventListener("dragover", noopHandler, false);
 	dropbox.addEventListener("drop", drop, false);
-	
-}
+};
+
+Histogram.init = function() {
+  this.initEventHandlers();
+  this.showExample();
+};
