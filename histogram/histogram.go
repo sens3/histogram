@@ -96,16 +96,16 @@ func generateHistogramForImage(m image.Image) [][]float64 {
 		}
 	}
 
-	// create median for each x value
+	// create rounded mean value for each x value
 	for i, values := range histogram {
 		for j := range values {
-			histogram[i][j] = roundedPercentage(histogram[i][j], float64(heightPixels))
+			histogram[i][j] = roundedMean(histogram[i][j], float64(heightPixels))
 		}
 	}
 
 	return histogram
 }
 
-func roundedPercentage(value, count float64) float64 {
+func roundedMean(value, count float64) float64 {
 	return float64(int(((value / count) * 100) + 0.5))
 }
