@@ -44,7 +44,7 @@ func histogram(w http.ResponseWriter, r *http.Request) {
 	
 	// we will either receive example_image_file or image_data
 	if r.FormValue("example_image_file") != "" {
-		file, err = os.Open("public/images/" + r.FormValue("example_image_file"))
+		file, err = os.Open("images/" + r.FormValue("example_image_file"))
 	} else {
 		file, _, err = r.FormFile("image_data")
 	}
