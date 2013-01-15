@@ -8,10 +8,10 @@ function displayImage(src) {
   var img = document.getElementById("preview"),
       histogram = document.getElementById("histogram");
   img.src = src;
-  setTimeout(function(){ // give the DOM a little time to render
+  img.onload = function() {
     histogram.style.width = img.width;
     histogram.style.display = 'block';
-  }, 300);
+  };
 }
 
 function handleReaderLoad(evt) {
